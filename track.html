@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Your Order — DropsEx ⚡</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--gold:#F5A623;--black:#0A0A0A;--white:#FAFAFA;--mid:#1A1A1A;--border:rgba(245,166,35,0.15);--grey:rgba(255,255,255,0.45);}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden;}
+    .bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(245,166,35,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,166,35,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+    .bg-glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(245,166,35,0.08) 0%,transparent 70%);pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;width:100%;z-index:100;padding:18px 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,10,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-logo span{font-size:1.8rem;} .nav-logo h1{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--white);letter-spacing:3px;}
+    .nav-links{display:flex;gap:28px;}
+    .nav-links a{color:var(--grey);text-decoration:none;font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;transition:color 0.2s;}
+    .nav-links a:hover{color:var(--gold);}
+    .nav-badge{background:var(--gold);color:var(--black);padding:6px 16px;border-radius:50px;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+    .hero{position:relative;z-index:1;padding:160px 60px 60px;text-align:center;}
+    .hero-label{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);color:var(--gold);padding:6px 18px;border-radius:50px;font-size:0.7rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;}
+    .dot{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:blink 1.5s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+    .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,10vw,110px);letter-spacing:4px;line-height:0.9;margin-bottom:16px;}
+    .hero h1 em{color:var(--gold);font-style:normal;}
+    .hero p{color:var(--grey);font-size:1rem;letter-spacing:1px;}
+    .search-section{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:0 20px 80px;}
+    .search-box{background:var(--mid);border:1px solid var(--border);border-radius:4px;padding:8px 8px 8px 24px;display:flex;align-items:center;gap:12px;transition:border-color 0.3s;}
+    .search-box:focus-within{border-color:var(--gold);}
+    .search-box i{color:var(--gold);font-size:1rem;flex-shrink:0;}
+    .search-box input{flex:1;background:none;border:none;outline:none;color:var(--white);font-family:'DM Mono',monospace;font-size:1rem;letter-spacing:2px;}
+    .search-box input::placeholder{color:rgba(255,255,255,0.25);}
+    .track-btn{background:var(--gold);color:var(--black);border:none;padding:14px 28px;border-radius:2px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;cursor:pointer;transition:opacity 0.2s,transform 0.2s;white-space:nowrap;}
+    .track-btn:hover{opacity:0.9;transform:translateY(-1px);}
+    .track-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+    .result-section{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:0 20px 60px;}
+    .error-card{background:rgba(255,80,80,0.05);border:1px solid rgba(255,80,80,0.2);border-radius:4px;padding:28px;text-align:center;display:none;}
+    .error-card .icon{font-size:2rem;margin-bottom:12px;}
+    .error-card h3{font-size:1rem;font-weight:700;color:#ff6464;margin-bottom:8px;}
+    .error-card p{color:var(--grey);font-size:0.875rem;}
+    .track-card{display:none;}
+    .track-header{background:var(--mid);border:1px solid var(--border);border-top:3px solid var(--gold);padding:28px 32px;margin-bottom:2px;}
+    .track-id-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+    .track-id{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;color:var(--gold);letter-spacing:3px;}
+    .status-pill{padding:6px 16px;border-radius:50px;font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+    .status-confirmed{background:rgba(245,166,35,0.15);color:var(--gold);}
+    .status-processing{background:rgba(59,130,246,0.15);color:#60a5fa;}
+    .status-dispatched{background:rgba(168,85,247,0.15);color:#c084fc;}
+    .status-delivered{background:rgba(34,197,94,0.15);color:#4ade80;}
+    .status-cancelled{background:rgba(239,68,68,0.15);color:#f87171;}
+    .track-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .meta-item label{font-size:0.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--grey);display:block;margin-bottom:4px;}
+    .meta-item span{font-size:0.9rem;font-weight:500;}
+    .timeline{background:var(--mid);border:1px solid var(--border);padding:32px;}
+    .timeline h3{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;color:var(--gold);margin-bottom:28px;}
+    .timeline-item{display:flex;gap:20px;position:relative;padding-bottom:32px;}
+    .timeline-item:last-child{padding-bottom:0;}
+    .tl-left{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0;}
+    .tl-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;z-index:1;}
+    .tl-icon.done{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);}
+    .tl-icon.active{background:rgba(245,166,35,0.15);color:var(--gold);border:1px solid rgba(245,166,35,0.4);animation:glow 2s infinite;}
+    .tl-icon.pending{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.08);}
+    @keyframes glow{0%,100%{box-shadow:0 0 0 rgba(245,166,35,0)}50%{box-shadow:0 0 16px rgba(245,166,35,0.3)}}
+    .tl-line{flex:1;width:1px;background:rgba(255,255,255,0.08);margin-top:4px;}
+    .tl-line.done{background:rgba(34,197,94,0.3);}
+    .timeline-item:last-child .tl-line{display:none;}
+    .tl-content{flex:1;padding-top:8px;}
+    .tl-title{font-weight:700;font-size:0.95rem;margin-bottom:4px;}
+    .tl-title.done{color:var(--white);} .tl-title.active{color:var(--gold);} .tl-title.pending{color:rgba(255,255,255,0.3);}
+    .tl-time{font-size:0.78rem;color:var(--grey);font-family:'DM Mono',monospace;}
+    .tl-desc{font-size:0.82rem;color:rgba(255,255,255,0.45);margin-top:4px;line-height:1.5;}
+    .refresh-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:rgba(245,166,35,0.04);border:1px solid var(--border);border-top:none;margin-top:2px;font-size:0.78rem;color:var(--grey);}
+    .refresh-btn{background:none;border:1px solid var(--border);color:var(--gold);padding:6px 14px;border-radius:50px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.75rem;transition:all 0.2s;}
+    .refresh-btn:hover{background:rgba(245,166,35,0.08);}
+    .loader{display:none;text-align:center;padding:40px;}
+    .loader-ring{width:40px;height:40px;border:3px solid rgba(245,166,35,0.15);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loader p{color:var(--grey);font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;}
+    .help-section{position:relative;z-index:1;max-width:640px;margin:0 auto 60px;padding:0 20px;}
+    .help-card{background:var(--mid);border:1px solid var(--border);padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+    .help-card p{font-size:0.875rem;color:var(--grey);}
+    .help-card strong{color:var(--white);}
+    .wa-btn{background:#25D366;color:white;border:none;padding:12px 24px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:8px;text-decoration:none;transition:opacity 0.2s;}
+    .wa-btn:hover{opacity:0.9;}
+    footer{position:relative;z-index:1;background:#050505;padding:28px 60px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+    footer p{color:rgba(255,255,255,0.25);font-size:0.78rem;}
+    .f-links{display:flex;gap:20px;}
+    .f-links a{color:rgba(255,255,255,0.3);text-decoration:none;font-size:0.78rem;transition:color 0.2s;}
+    .f-links a:hover{color:var(--gold);}
+    @media(max-width:768px){nav{padding:16px 20px;}.nav-links{display:none;}.hero{padding:120px 20px 40px;}.track-meta{grid-template-columns:1fr;}footer{padding:24px 20px;}}
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <nav>
+    <a class="nav-logo" href="index.html"><img src="logo.jpeg" alt="Klutch Konnect" style="height:38px;width:38px;object-fit:contain;border-radius:50%;"><h1>KLUTCH KONNECT</h1></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="shop.html">Shop</a>
+      <a href="about.html">About</a><a href="contact.html">Contact</a>
+    </div>
+    <span class="nav-badge">🚚 DropsEx</span>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-label"><span class="dot"></span>Live Tracking System</div>
+    <h1>TRACK YOUR<br><em>ORDER</em></h1>
+    <p>Enter your Klutch tracking number to see real-time delivery status</p>
+  </section>
+
+  <section class="search-section">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="tracking-input" placeholder="KLUTCH-XXXXXX" maxlength="14"
+             oninput="formatInput(this)" onkeydown="if(event.key==='Enter')trackOrder()">
+      <button class="track-btn" onclick="trackOrder()" id="track-btn">TRACK</button>
+    </div>
+  </section>
+
+  <section class="result-section">
+    <div class="loader" id="loader"><div class="loader-ring"></div><p>Fetching your order...</p></div>
+    <div class="error-card" id="error-card">
+      <div class="icon">📦</div>
+      <h3>Order Not Found</h3>
+      <p>We couldn't find an order with that tracking number.<br>Double-check the number or contact us on WhatsApp.</p>
+    </div>
+    <div class="track-card" id="track-card">
+      <div class="track-header">
+        <div class="track-id-row">
+          <div class="track-id" id="result-id"></div>
+          <div class="status-pill" id="result-status-pill"></div>
+        </div>
+        <div class="track-meta">
+          <div class="meta-item"><label>Customer</label><span id="result-customer">—</span></div>
+          <div class="meta-item"><label>Product</label><span id="result-product">—</span></div>
+          <div class="meta-item"><label>Delivery Address</label><span id="result-address">—</span></div>
+          <div class="meta-item"><label>Expected Delivery</label><span id="result-eta">—</span></div>
+        </div>
+      </div>
+      <div class="timeline"><h3>⚡ DELIVERY TIMELINE</h3><div id="timeline-steps"></div></div>
+      <div class="refresh-bar">
+        <span id="last-updated">Last updated just now</span>
+        <button class="refresh-btn" onclick="refreshCurrent()">↻ Refresh</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="help-section">
+    <div class="help-card">
+      <div><p><strong>Need help with your order?</strong></p><p>Contact Klutch Konnect directly on WhatsApp for immediate assistance.</p></div>
+      <a href="https://wa.me/2348127140217" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Chat with Us</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Klutch Konnect Ltd · RC 9207504 · DropsEx Logistics</p>
+    <div class="f-links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="contact.html">Contact</a></div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://fcageltqgpctregmxunj.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjYWdlbHRxZ3BjdHJlZ214dW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDQ5MDQsImV4cCI6MjA5NDI4MDkwNH0.k37ir7GStGloipMfLeLZIs7vWPxUynUDVHM3EI0TmGA';
+    const {createClient} = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const STEPS = [
+      {key:'confirmed',  label:'Order Confirmed',           icon:'fa-check',        desc:'Your order has been received and confirmed by Klutch Konnect.'},
+      {key:'processing', label:'Processed at Klutch Farms', icon:'fa-wheat-awn',    desc:'Your order is being prepared and packaged at Klutch Farms, Isolo Lagos.'},
+      {key:'dispatched', label:'Out for Delivery',          icon:'fa-truck-fast',   desc:'Your order is on its way via DropsEx logistics.'},
+      {key:'delivered',  label:'Delivered ✓',               icon:'fa-circle-check', desc:'Your order has been successfully delivered. Enjoy!'},
+    ];
+    const STATUS_ORDER = ['confirmed','processing','dispatched','delivered'];
+    let currentTrackingId = null;
+
+    function formatInput(el){
+      let val = el.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
+      if(val.length>0 && !val.startsWith('KLUTCH-')){
+        val = val.startsWith('KLUTCH') ? 'KLUTCH-'+val.slice(6) : 'KLUTCH-'+val;
+      }
+      el.value = val.slice(0,14);
+    }
+
+    function show(id){document.getElementById(id).style.display='block';}
+    function hide(id){document.getElementById(id).style.display='none';}
+
+    async function trackOrder(){
+      const input = document.getElementById('tracking-input').value.trim().toUpperCase();
+      if(!input||input.length<8) return;
+      currentTrackingId = input;
+      hide('track-card'); hide('error-card'); show('loader');
+      document.getElementById('track-btn').disabled = true;
+
+      const {data,error} = await db.from('orders').select('*').eq('tracking_id',input).single();
+
+      hide('loader');
+      document.getElementById('track-btn').disabled = false;
+      if(error||!data){show('error-card');return;}
+      renderResult(data);
+    }
+
+    function renderResult(data){
+      document.getElementById('result-id').textContent       = data.tracking_id;
+      document.getElementById('result-customer').textContent = data.customer_name||'—';
+      document.getElementById('result-product').textContent  = data.product||'—';
+      document.getElementById('result-address').textContent  = data.delivery_address||'—';
+      document.getElementById('result-eta').textContent      = data.eta ? fmtDate(data.eta) : '—';
+      document.getElementById('last-updated').textContent    = 'Last updated '+timeAgo(data.updated_at);
+
+      const pill = document.getElementById('result-status-pill');
+      pill.textContent = (data.status||'').toUpperCase().replace('_',' ');
+      pill.className   = 'status-pill status-'+data.status;
+
+      const currentIdx = STATUS_ORDER.indexOf(data.status);
+      document.getElementById('timeline-steps').innerHTML = STEPS.map((step,i)=>{
+        const isDone   = i<currentIdx||data.status==='delivered';
+        const isActive = i===currentIdx&&data.status!=='delivered';
+        const state    = isDone?'done':isActive?'active':'pending';
+        const ts       = data[step.key+'_at'];
+        return `<div class="timeline-item">
+          <div class="tl-left">
+            <div class="tl-icon ${state}"><i class="fa-solid ${isDone?'fa-check':isActive?step.icon:'fa-circle'}"></i></div>
+            <div class="tl-line ${isDone?'done':''}"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-title ${state}">${step.label}</div>
+            <div class="tl-time">${ts?fmtDate(ts):(isActive||isDone)?'In progress':'Pending'}</div>
+            ${(isActive||isDone)?`<div class="tl-desc">${step.desc}</div>`:''}
+          </div>
+        </div>`;
+      }).join('');
+      show('track-card');
+    }
+
+    async function refreshCurrent(){
+      if(!currentTrackingId) return;
+      const {data} = await db.from('orders').select('*').eq('tracking_id',currentTrackingId).single();
+      if(data) renderResult(data);
+    }
+
+    function fmtDate(iso){return new Date(iso).toLocaleString('en-NG',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+    function timeAgo(iso){
+      const d=Math.floor((Date.now()-new Date(iso))/1000);
+      if(d<60) return 'just now';
+      if(d<3600) return Math.floor(d/60)+' min ago';
+      if(d<86400) return Math.floor(d/3600)+' hr ago';
+      return Math.floor(d/86400)+' day(s) ago';
+    }
+
+    const urlId = new URLSearchParams(window.location.search).get('id');
+    if(urlId){document.getElementById('tracking-input').value=urlId.toUpperCase();trackOrder();}
+  </script>
+</body>
+</html>

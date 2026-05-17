@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — Klutch Farms Store ⚡</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <style>
+    :root{--gold:#F5A623;--black:#0A0A0A;--white:#FAFAFA;--mid:#1E1E1E;--border:rgba(245,166,35,0.15);--grey:rgba(255,255,255,0.45);}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--white);overflow-x:hidden;}
+    nav{position:fixed;top:0;width:100%;z-index:100;padding:20px 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,10,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-logo span{font-size:2rem;} .nav-logo h1{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--white);letter-spacing:3px;}
+    .nav-links{display:flex;gap:28px;}
+    .nav-links a{color:var(--grey);text-decoration:none;font-size:0.85rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:color 0.2s;}
+    .nav-links a:hover{color:var(--gold);}
+    .cart-btn{position:relative;cursor:pointer;background:none;border:none;color:var(--white);font-size:1.4rem;padding:8px;}
+    .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--gold);color:var(--black);font-size:0.65rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+    .shop-hero{padding:140px 60px 60px;background:radial-gradient(ellipse at top,rgba(245,166,35,0.08) 0%,transparent 60%);}
+    .shop-hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,8vw,100px);letter-spacing:3px;line-height:1;}
+    .shop-hero h1 span{color:var(--gold);} .shop-hero p{color:var(--grey);font-size:1rem;margin-top:12px;letter-spacing:2px;text-transform:uppercase;}
+    .filters{padding:0 60px 40px;display:flex;gap:12px;flex-wrap:wrap;}
+    .filter-btn{background:none;border:1px solid rgba(255,255,255,0.15);color:var(--grey);padding:8px 20px;border-radius:50px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;transition:all 0.2s;}
+    .filter-btn:hover,.filter-btn.active{background:var(--gold);border-color:var(--gold);color:var(--black);font-weight:700;}
+    .products{padding:0 60px 100px;}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2px;}
+    .product-card{background:var(--mid);position:relative;overflow:hidden;transition:background 0.3s;}
+    .product-card:hover{background:#252525;}
+    .card-img{height:260px;display:flex;align-items:center;justify-content:center;font-size:5rem;background:#1A1A1A;position:relative;overflow:hidden;}
+    .card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+    .card-badge{position:absolute;top:16px;left:16px;background:#1E2A3A;color:var(--gold);border:1px solid rgba(245,166,35,0.4);font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:50px;z-index:2;}
+    .card-body{padding:24px;}
+    .card-cat{font-size:0.7rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+    .card-name{font-weight:600;font-size:1.05rem;margin-bottom:12px;line-height:1.4;}
+    .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;}
+    .card-price{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold);}
+    .add-btn{background:var(--gold);color:var(--black);border:none;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:1.2rem;font-weight:700;transition:transform 0.2s,box-shadow 0.2s;}
+    .add-btn:hover{transform:scale(1.1);box-shadow:0 4px 16px rgba(245,166,35,0.4);}
+    .cart-overlay-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+    .cart-overlay-bg.open{opacity:1;pointer-events:all;}
+    .cart-sidebar{position:fixed;top:0;right:0;height:100%;width:420px;max-width:100%;background:#0F0F0F;z-index:201;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;border-left:1px solid var(--border);}
+    .cart-sidebar.open{transform:translateX(0);}
+    .cart-header{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;}
+    .cart-header h2{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;}
+    .cart-close{background:none;border:none;color:var(--white);font-size:1.5rem;cursor:pointer;opacity:0.6;transition:opacity 0.2s;}
+    .cart-close:hover{opacity:1;}
+    .cart-items{flex:1;overflow-y:auto;padding:20px 24px;}
+    .cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);gap:12px;}
+    .cart-empty .big{font-size:3rem;}
+    .cart-item{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+    .cart-item-img{width:64px;height:64px;background:var(--mid);border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;}
+    .cart-item-img img{width:100%;height:100%;object-fit:cover;}
+    .cart-item-info{flex:1;}
+    .cart-item-name{font-size:0.9rem;font-weight:500;margin-bottom:6px;}
+    .cart-item-price{color:var(--gold);font-size:0.85rem;}
+    .qty-controls{display:flex;align-items:center;gap:12px;margin-top:10px;}
+    .qty-btn{background:var(--mid);border:none;color:var(--white);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:1rem;transition:background 0.2s;}
+    .qty-btn:hover{background:#2A2A2A;}
+    .qty-num{font-size:0.9rem;font-weight:600;min-width:20px;text-align:center;}
+    .remove-btn{background:none;border:none;color:rgba(255,100,100,0.6);cursor:pointer;font-size:0.8rem;margin-left:auto;transition:color 0.2s;}
+    .remove-btn:hover{color:#ff6464;}
+    .cart-footer{padding:24px;border-top:1px solid rgba(255,255,255,0.08);}
+    .cart-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .cart-total span:first-child{font-size:0.85rem;color:var(--grey);text-transform:uppercase;letter-spacing:2px;}
+    .cart-total span:last-child{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);}
+    .checkout-wa{width:100%;background:#25D366;color:white;border:none;padding:16px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.2s;}
+    .checkout-wa:hover{opacity:0.9;}
+    .checkout-pay{width:100%;background:var(--gold);color:var(--black);border:none;padding:16px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.95rem;transition:opacity 0.2s;}
+    .checkout-pay:hover{opacity:0.9;}
+    .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--gold);color:var(--black);padding:12px 28px;border-radius:50px;font-weight:700;font-size:0.9rem;z-index:999;transition:transform 0.3s;white-space:nowrap;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    footer{background:#050505;padding:40px 60px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+    footer p{color:rgba(255,255,255,0.3);font-size:0.8rem;}
+    .f-socials{display:flex;gap:16px;}
+    .f-socials a{color:rgba(255,255,255,0.4);font-size:1rem;transition:color 0.2s;text-decoration:none;}
+    .f-socials a:hover{color:var(--gold);}
+    @media(max-width:768px){nav{padding:16px 20px;}.nav-links{display:none;}.shop-hero,.filters,.products{padding-left:20px;padding-right:20px;}.cart-sidebar{width:100%;}footer{padding:30px 20px;}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html"><img src="logo.jpeg" alt="Klutch Konnect" style="height:38px;width:38px;object-fit:contain;border-radius:50%;"><h1>KLUTCH KONNECT</h1></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="shop.html">Shop</a>
+      <a href="about.html">About</a><a href="contact.html">Contact</a>
+      <a href="track.html">Track Order</a>
+    </div>
+    <button class="cart-btn" onclick="toggleCart()">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span class="cart-badge" id="cart-count">0</span>
+    </button>
+  </nav>
+
+  <div class="shop-hero">
+    <h1>KLUTCH<br><span>FARMS</span><br>STORE</h1>
+    <p>Fresh · Roasted · Delivered Fast ⚡</p>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterProducts('all',this)">All Products</button>
+    <button class="filter-btn" onclick="filterProducts('fish',this)">🐟 Fish</button>
+    <button class="filter-btn" onclick="filterProducts('poultry',this)">🍗 Poultry</button>
+    <button class="filter-btn" onclick="filterProducts('livestock',this)">🐐 Livestock</button>
+    <button class="filter-btn" onclick="filterProducts('merch',this)">👕 Merch</button>
+  </div>
+
+  <section class="products">
+    <div class="product-grid" id="product-grid"></div>
+  </section>
+
+  <div class="cart-overlay-bg" id="cart-overlay-bg" onclick="toggleCart()"></div>
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header"><h2>YOUR CART</h2><button class="cart-close" onclick="toggleCart()">✕</button></div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>Total</span><span id="cart-total">₦0</span></div>
+      <button class="checkout-wa" onclick="whatsappCheckout()"><i class="fab fa-whatsapp"></i> Pre-Order via WhatsApp</button>
+      <button class="checkout-pay" onclick="payWithPaystack()">💳 Pay with Paystack</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer>
+    <p>© 2026 Klutch Konnect Ltd · RC 9207504</p>
+    <div class="f-socials">
+      <a href="https://www.instagram.com/klutchkonnectltd?igsh=MW10cmZ5azJtMG9rYQ%3D%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="https://x.com/klutchkonnectlt?s=21&t=Zs2CWiuatx5dUINzJgXvRA" target="_blank"><i class="fab fa-x-twitter"></i></a>
+      <a href="https://www.tiktok.com/@klutchkonnecthold?_r=1&_t=ZS-96GsWOJuEpJ" target="_blank"><i class="fab fa-tiktok"></i></a>
+      <a href="https://wa.me/2348127140217" target="_blank"><i class="fab fa-whatsapp"></i></a>
+    </div>
+  </footer>
+
+  <script>
+    const PRODUCTS = [
+      {id:1,name:"Smoky Roasted Catfish (900g)",  price:9500,  img:"img_fish500.jpeg",     cat:"fish",     badge:"Pre-order",preorder:true},
+      {id:2,name:"Roasted Fish Pack (500g)",       price:5500,  img:"img_fish500.jpeg",     cat:"fish",     badge:"Pre-order",preorder:true},
+      {id:3,name:"Fresh Eggs (30pcs Crate)",       price:7500,  img:"img_eggs.png",         cat:"poultry",  badge:"Pre-order",preorder:true},
+      {id:4,name:"Live Point & Kill Chicken (2kg)",price:12500, img:null,                   cat:"poultry",  badge:"Pre-order",preorder:true},
+      {id:5,name:"Whole Turkey (5-6kg)",           price:35000, img:null,                   cat:"poultry",  badge:"Pre-order",preorder:true},
+      {id:6,name:"Goat Meat (1kg)",                price:6500,  img:"img_goat.jpeg",        cat:"livestock",badge:"Pre-order",preorder:true},
+      {id:7,name:"Ram (Live)",                     price:120000,img:"img_ram.jpeg",         cat:"livestock",badge:"Pre-order",preorder:true},
+      {id:8,name:"Klutch Sports Jersey",           price:25000, img:"img_jersey_maroon.png",cat:"merch",    badge:"Limited",  preorder:true},
+    ];
+    const EF={fish:'🐟',poultry:'🍗',livestock:'🐐',merch:'⚡'};
+    let cart=[];
+    let currentFilter='all';
+
+    function sanitizeCart(){
+      try{
+        const raw=JSON.parse(localStorage.getItem('klutchCart')||'[]');
+        cart=raw.filter(i=>i&&typeof i.id==='number'&&PRODUCTS.some(p=>p.id===i.id)&&typeof i.quantity==='number'&&i.quantity>0)
+                .map(i=>({id:i.id,quantity:Math.min(Math.floor(i.quantity),99)}));
+      }catch{cart=[];}
+    }
+    sanitizeCart();
+    function getProduct(id){return PRODUCTS.find(p=>p.id===id);}
+    function saveCart(){localStorage.setItem('klutchCart',JSON.stringify(cart));}
+
+    function filterProducts(cat,btn){
+      currentFilter=cat;
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts();
+    }
+
+    function renderProducts(){
+      const grid=document.getElementById('product-grid');
+      const filtered=currentFilter==='all'?PRODUCTS:PRODUCTS.filter(p=>p.cat===currentFilter);
+      grid.innerHTML=filtered.map(p=>`
+        <div class="product-card">
+          <div class="card-img">
+            ${p.badge?`<span class="card-badge">${p.badge}</span>`:''}
+            ${p.img?`<img src="${p.img}" alt="${p.name}" loading="lazy">`:`<span>${EF[p.cat]||'⚡'}</span>`}
+          </div>
+          <div class="card-body">
+            <div class="card-cat">${p.cat} · <span style="color:var(--gold);font-size:0.65rem;">PRE-ORDER</span></div>
+            <div class="card-name">${p.name}</div>
+            <div class="card-footer">
+              <div class="card-price">₦${p.price.toLocaleString()}</div>
+              <button class="add-btn" onclick="addToCart(${p.id})">+</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    function addToCart(id){
+      const p=getProduct(id); if(!p) return;
+      const ex=cart.find(i=>i.id===id);
+      if(ex) ex.quantity=Math.min(ex.quantity+1,99);
+      else cart.push({id,quantity:1});
+      saveCart(); updateCartCount();
+      showToast(`✓ ${p.name} added!`);
+    }
+    function changeQty(index,change){
+      if(!cart[index]) return;
+      cart[index].quantity=Math.max(1,Math.min(cart[index].quantity+change,99));
+      saveCart(); renderCart(); updateCartCount();
+    }
+    function removeItem(index){
+      cart.splice(index,1); saveCart(); renderCart(); updateCartCount();
+    }
+    function updateCartCount(){
+      document.getElementById('cart-count').textContent=cart.reduce((s,i)=>s+i.quantity,0);
+    }
+
+    function renderCart(){
+      const container=document.getElementById('cart-items');
+      let total=0;
+      if(!cart.length){
+        container.innerHTML=`<div class="cart-empty"><div class="big">🛒</div><p>Your cart is empty</p></div>`;
+        document.getElementById('cart-total').textContent='₦0'; return;
+      }
+      container.innerHTML=cart.map((item,i)=>{
+        const p=getProduct(item.id); if(!p) return '';
+        const sub=p.price*item.quantity; total+=sub;
+        const thumb=p.img?`<img src="${p.img}" alt="${p.name}">`:`<span>${EF[p.cat]||'⚡'}</span>`;
+        return `<div class="cart-item">
+          <div class="cart-item-img">${thumb}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${p.name}</div>
+            <div class="cart-item-price">₦${p.price.toLocaleString()}</div>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+              <span class="qty-num">${item.quantity}</span>
+              <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
+              <button class="remove-btn" onclick="removeItem(${i})">Remove</button>
+            </div>
+          </div>
+        </div>`;
+      }).filter(Boolean).join('');
+      document.getElementById('cart-total').textContent=`₦${total.toLocaleString()}`;
+    }
+
+    function toggleCart(){
+      document.getElementById('cart-sidebar').classList.toggle('open');
+      document.getElementById('cart-overlay-bg').classList.toggle('open');
+      renderCart();
+    }
+
+    function whatsappCheckout(){
+      if(!cart.length) return showToast('Your cart is empty!');
+      let msg="Hello Klutch Konnect! ⚡%0A%0AI'd like to PRE-ORDER:%0A";
+      let total=0;
+      cart.forEach(item=>{
+        const p=getProduct(item.id); if(!p) return;
+        const sub=p.price*item.quantity; total+=sub;
+        msg+=`• ${p.name} × ${item.quantity} = ₦${sub.toLocaleString()}%0A`;
+      });
+      msg+=`%0A*Total: ₦${total.toLocaleString()}*%0A%0APlease confirm my pre-order and delivery details. Thank you!`;
+      window.open(`https://wa.me/2348127140217?text=${msg}`,'_blank');
+    }
+
+    function payWithPaystack(){
+      if(!cart.length) return showToast('Your cart is empty!');
+      const total=cart.reduce((s,i)=>{const p=getProduct(i.id);return s+(p?p.price*i.quantity:0);},0);
+      const handler=PaystackPop.setup({
+        key:'YOUR_PAYSTACK_PUBLIC_KEY',
+        email:prompt('Enter your email for receipt:')||'customer@klutchkonnect.com',
+        amount:total*100, currency:'NGN', ref:'KK-'+Date.now(),
+        callback(r){showToast('✓ Payment successful!');localStorage.removeItem('klutchCart');cart=[];updateCartCount();toggleCart();}
+      });
+      handler.openIframe();
+    }
+
+    function showToast(msg){
+      const t=document.getElementById('toast');
+      t.textContent=msg; t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),2200);
+    }
+
+    renderProducts(); updateCartCount();
+  </script>
+</body>
+</html>

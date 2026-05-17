@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klutch Konnect — Clutch Under Pressure ⚡</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    :root{--gold:#F5A623;--black:#0A0A0A;--white:#FAFAFA;--grey:#111111;--mid:#1E1E1E;--border:rgba(245,166,35,0.15);}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--white);overflow-x:hidden;}
+    nav{position:fixed;top:0;width:100%;z-index:100;padding:20px 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-logo span{font-size:2rem;} .nav-logo h1{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--white);letter-spacing:3px;}
+    .nav-links{display:flex;gap:28px;}
+    .nav-links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:color 0.2s;}
+    .nav-links a:hover{color:var(--gold);}
+    .nav-cta{background:var(--gold);color:var(--black);padding:10px 24px;border-radius:50px;font-weight:700;text-decoration:none;font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;transition:transform 0.2s,box-shadow 0.2s;}
+    .nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,166,35,0.4);}
+    .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--black);}
+    .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 60% 50%,rgba(245,166,35,0.12) 0%,transparent 70%),radial-gradient(ellipse at 10% 80%,rgba(245,166,35,0.06) 0%,transparent 50%);}
+    .hero-bolt{position:absolute;right:-80px;top:50%;transform:translateY(-50%);font-size:600px;opacity:0.04;line-height:1;animation:pulse 4s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:0.04}50%{opacity:0.07}}
+    .hero-content{position:relative;text-align:center;padding:0 20px;max-width:900px;}
+    .hero-tag{display:inline-block;border:1px solid var(--gold);color:var(--gold);padding:6px 20px;border-radius:50px;font-size:0.75rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:32px;animation:fadeUp 0.8s ease both;}
+    .hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,12vw,140px);line-height:0.9;letter-spacing:4px;margin-bottom:28px;animation:fadeUp 0.8s ease 0.1s both;}
+    .hero-title .gold{color:var(--gold);}
+    .hero-sub{font-size:1.1rem;color:rgba(255,255,255,0.6);font-weight:300;margin-bottom:48px;letter-spacing:1px;animation:fadeUp 0.8s ease 0.2s both;}
+    .hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.8s ease 0.3s both;}
+    .btn-primary{background:var(--gold);color:var(--black);padding:16px 40px;border-radius:50px;font-weight:700;text-decoration:none;font-size:1rem;transition:transform 0.2s,box-shadow 0.2s;}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(245,166,35,0.4);}
+    .btn-outline{border:1px solid rgba(255,255,255,0.3);color:var(--white);padding:16px 40px;border-radius:50px;font-weight:500;text-decoration:none;font-size:1rem;transition:border-color 0.2s,background 0.2s;}
+    .btn-outline:hover{border-color:var(--gold);background:rgba(245,166,35,0.05);}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .ticker{background:var(--gold);padding:12px 0;overflow:hidden;}
+    .ticker-inner{display:flex;gap:60px;animation:ticker 20s linear infinite;width:max-content;}
+    .ticker-inner span{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;color:var(--black);white-space:nowrap;}
+    @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    .arms{padding:100px 60px;}
+    .section-label{font-size:0.75rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+    .section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,6vw,72px);letter-spacing:2px;margin-bottom:60px;}
+    .arms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px;}
+    .arm-card{background:var(--mid);padding:48px 36px;position:relative;overflow:hidden;transition:background 0.3s;}
+    .arm-card::before{content:'';position:absolute;bottom:0;left:0;width:100%;height:3px;background:var(--gold);transform:scaleX(0);transition:transform 0.3s;}
+    .arm-card:hover{background:#1A1A1A;}
+    .arm-card:hover::before{transform:scaleX(1);}
+    .arm-icon{font-size:2.5rem;margin-bottom:20px;}
+    .arm-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;margin-bottom:12px;}
+    .arm-desc{color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.7;}
+    .arm-tag{display:inline-block;margin-top:20px;background:rgba(245,166,35,0.1);color:var(--gold);padding:4px 14px;border-radius:50px;font-size:0.75rem;font-weight:600;}
+    .stats{padding:80px 60px;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06);}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px;text-align:center;}
+    .stat-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,6vw,80px);color:var(--gold);letter-spacing:2px;line-height:1;}
+    .stat-label{color:rgba(255,255,255,0.5);font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;margin-top:8px;}
+    .preview{padding:100px 60px;background:var(--grey);}
+    .preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;margin-top:60px;}
+    .preview-card{background:var(--mid);border-radius:4px;overflow:hidden;transition:transform 0.3s;text-decoration:none;color:var(--white);}
+    .preview-card:hover{transform:translateY(-8px);}
+    .preview-img{height:220px;background:#2A2A2A;display:flex;align-items:center;justify-content:center;font-size:4rem;overflow:hidden;}
+    .preview-img img{width:100%;height:100%;object-fit:cover;}
+    .preview-info{padding:24px;}
+    .preview-name{font-weight:600;font-size:1rem;margin-bottom:8px;}
+    .preview-price{color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;}
+    .preview-cta{display:block;margin-top:60px;text-align:center;}
+    footer{background:#050505;padding:60px;border-top:1px solid var(--border);}
+    .footer-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:40px;margin-bottom:48px;}
+    .footer-brand{max-width:300px;}
+    .footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+    .footer-logo span{font-size:1.8rem;} .footer-logo h2{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;}
+    .footer-desc{color:rgba(255,255,255,0.45);font-size:0.875rem;line-height:1.7;}
+    .footer-links h4{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:1rem;color:var(--gold);margin-bottom:20px;}
+    .footer-links a{display:block;color:rgba(255,255,255,0.45);text-decoration:none;font-size:0.875rem;margin-bottom:12px;transition:color 0.2s;}
+    .footer-links a:hover{color:var(--white);}
+    .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.06);}
+    .footer-bottom p{color:rgba(255,255,255,0.3);font-size:0.8rem;}
+    .socials{display:flex;gap:16px;}
+    .socials a{color:rgba(255,255,255,0.4);font-size:1.1rem;transition:color 0.2s;text-decoration:none;}
+    .socials a:hover{color:var(--gold);}
+    @media(max-width:768px){nav{padding:16px 20px;}.nav-links{display:none;}.arms,.stats,.preview{padding:60px 20px;}footer{padding:40px 20px;}.hero-bolt{display:none;}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html"><img src="logo.jpeg" alt="Klutch Konnect" style="height:38px;width:38px;object-fit:contain;border-radius:50%;"><h1>KLUTCH KONNECT</h1></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="shop.html">Shop</a>
+      <a href="about.html">About</a><a href="contact.html">Contact</a>
+      <a href="track.html">Track Order</a>
+    </div>
+    <a href="shop.html" class="nav-cta">Shop Now</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-bolt">⚡</div>
+    <div class="hero-content">
+      <div class="hero-tag">Lagos, Nigeria · Est. 2019 · RC 9207504</div>
+      <h2 class="hero-title">CLUTCH<br><span class="gold">UNDER</span><br>PRESSURE</h2>
+      <p class="hero-sub">Premium Farm Products &nbsp;·&nbsp; Fast Delivery &nbsp;·&nbsp; Youth Sports &nbsp;·&nbsp; Elite Network</p>
+      <div class="hero-btns">
+        <a href="shop.html" class="btn-primary">Shop Klutch Farms</a>
+        <a href="about.html" class="btn-outline">Our Story</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker">
+    <div class="ticker-inner">
+      <span>⚡ KLUTCH FARMS</span><span>🐟 ROASTED CATFISH</span><span>🍗 FRESH POULTRY</span>
+      <span>🐐 PREMIUM LIVESTOCK</span><span>🚚 DROPSEX DELIVERY</span><span>🏆 THE HUB</span>
+      <span>🎙️ 7 PM IN GIDI</span><span>⚡ CLUTCH UNDER PRESSURE</span>
+      <span>⚡ KLUTCH FARMS</span><span>🐟 ROASTED CATFISH</span><span>🍗 FRESH POULTRY</span>
+      <span>🐐 PREMIUM LIVESTOCK</span><span>🚚 DROPSEX DELIVERY</span><span>🏆 THE HUB</span>
+      <span>🎙️ 7 PM IN GIDI</span><span>⚡ CLUTCH UNDER PRESSURE</span>
+    </div>
+  </div>
+
+  <section class="arms">
+    <p class="section-label">The Ecosystem</p>
+    <h2 class="section-title">FOUR ARMS.<br>ONE VISION.</h2>
+    <div class="arms-grid">
+      <div class="arm-card"><div class="arm-icon">🌾</div><div class="arm-name">KLUTCH AGRICULTURE</div><p class="arm-desc">Premium fish, poultry, livestock and value-added farm products roasted fresh for Lagos tables.</p><span class="arm-tag">LIVE NOW</span></div>
+      <div class="arm-card"><div class="arm-icon">🚚</div><div class="arm-name">DROPSEX LOGISTICS</div><p class="arm-desc">Farm-to-door fast delivery across Lagos. Reliable, tracked, clutch every time.</p><span class="arm-tag">LIVE NOW</span></div>
+      <div class="arm-card"><div class="arm-icon">🏆</div><div class="arm-name">THE HUB</div><p class="arm-desc">Elite networking, loyalty rewards, and exclusive access. Three tiers — Basic, Pro, Elite.</p><span class="arm-tag">COMING SOON</span></div>
+      <div class="arm-card"><div class="arm-icon">🎙️</div><div class="arm-name">KLUTCH SPORTS</div><p class="arm-desc">Youth talent development, showcases, and the 7 PM in Gidi podcast with Batman & El Manii.</p><span class="arm-tag">COMING SOON</span></div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stats-grid">
+      <div><div class="stat-num">₦2.5M+</div><div class="stat-label">Bootstrapped</div></div>
+      <div><div class="stat-num">₦1M+</div><div class="stat-label">Pilot Revenue</div></div>
+      <div><div class="stat-num">50+</div><div class="stat-label">Farmers & Youth</div></div>
+      <div><div class="stat-num">30+</div><div class="stat-label">Active Customers</div></div>
+      <div><div class="stat-num">4</div><div class="stat-label">Business Arms</div></div>
+    </div>
+  </section>
+
+  <section class="preview">
+    <p class="section-label">Fresh From The Farm</p>
+    <h2 class="section-title">ORDER TODAY.<br>DELIVERED FAST.</h2>
+    <div class="preview-grid">
+      <a href="shop.html" class="preview-card">
+        <div class="preview-img"><img src="img_fish500.jpeg" alt="Roasted Catfish"></div>
+        <div class="preview-info"><div class="preview-name">Smoky Roasted Catfish (900g)</div><div class="preview-price">₦9,500</div></div>
+      </a>
+      <a href="shop.html" class="preview-card">
+        <div class="preview-img" style="font-size:4rem">🍗</div>
+        <div class="preview-info"><div class="preview-name">Live Point & Kill Chicken (2kg)</div><div class="preview-price">₦12,500</div></div>
+      </a>
+      <a href="shop.html" class="preview-card">
+        <div class="preview-img"><img src="img_eggs.png" alt="Fresh Eggs"></div>
+        <div class="preview-info"><div class="preview-name">Fresh Eggs (30pcs Crate)</div><div class="preview-price">₦7,500</div></div>
+      </a>
+      <a href="shop.html" class="preview-card">
+        <div class="preview-img"><img src="img_goat.jpeg" alt="Goat Meat"></div>
+        <div class="preview-info"><div class="preview-name">Goat Meat (1kg)</div><div class="preview-price">₦6,500</div></div>
+      </a>
+    </div>
+    <div class="preview-cta"><a href="shop.html" class="btn-primary" style="display:inline-block;">View Full Store →</a></div>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo"><img src="logo.jpeg" alt="Klutch" style="height:32px;width:32px;object-fit:contain;border-radius:50%;"><h2>KLUTCH KONNECT</h2></div>
+        <p class="footer-desc">A closed-loop ecosystem delivering agriculture, logistics, youth empowerment, and elite networking. Clutch under pressure — always.</p>
+      </div>
+      <div class="footer-links"><h4>Navigate</h4><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="about.html">About Us</a><a href="contact.html">Contact</a><a href="track.html">Track Order</a></div>
+      <div class="footer-links"><h4>Products</h4><a href="shop.html">Roasted Catfish</a><a href="shop.html">Poultry</a><a href="shop.html">Livestock</a><a href="shop.html">Fresh Eggs</a></div>
+      <div class="footer-links"><h4>Contact</h4><a href="tel:+2348127140217">+234 812 714 0217</a><a href="mailto:klutchkonnect@outlook.com">klutchkonnect@outlook.com</a><a href="#">Opp. 18 Eckankar Drive,<br>Jakande Estate, Isolo Lagos</a></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Klutch Konnect Ltd · RC 9207504 · All rights reserved</p>
+      <div class="socials">
+        <a href="https://www.instagram.com/klutchkonnectltd?igsh=MW10cmZ5azJtMG9rYQ%3D%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://x.com/klutchkonnectlt?s=21&t=Zs2CWiuatx5dUINzJgXvRA" target="_blank"><i class="fab fa-x-twitter"></i></a>
+        <a href="https://www.tiktok.com/@klutchkonnecthold?_r=1&_t=ZS-96GsWOJuEpJ" target="_blank"><i class="fab fa-tiktok"></i></a>
+        <a href="https://wa.me/2348127140217" target="_blank"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
