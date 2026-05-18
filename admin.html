@@ -6,7 +6,7 @@
   <title>Klutch Admin — Order Management ⚡</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <style>
     :root{--gold:#F5A623;--black:#0A0A0A;--white:#FAFAFA;--mid:#1A1A1A;--border:rgba(245,166,35,0.15);--grey:rgba(255,255,255,0.45);}
     *{margin:0;padding:0;box-sizing:border-box;}
@@ -97,7 +97,7 @@
   <div id="admin-panel" style="display:none;">
     <header>
       <div class="header-logo">
-        <img src="logo.jpeg" alt="Klutch" style="height:34px;width:34px;object-fit:contain;border-radius:50%;"><h1>KLUTCH ADMIN</h1>
+        <img src="logo.png" alt="Klutch" style="height:34px;width:34px;object-fit:contain;border-radius:50%;"><h1>KLUTCH ADMIN</h1>
         <small>DropsEx Control</small>
       </div>
       <div class="header-right">
@@ -179,11 +179,11 @@
   <script>
     const SUPABASE_URL = 'https://fcageltqgpctregmxunj.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjYWdlbHRxZ3BjdHJlZ214dW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDQ5MDQsImV4cCI6MjA5NDI4MDkwNH0.k37ir7GStGloipMfLeLZIs7vWPxUynUDVHM3EI0TmGA';
-    const {createClient} = supabase;
+    const {createClient} = window.supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ── Change this to something secret! ─────────────────────────────────
-    const ADMIN_PASS = 'klutchkonnect93@23';
+    const ADMIN_PASS = 'klutch2026';
     const SITE_URL   = 'https://tunjiodus93-ops.github.io/Klutch-Website';
 
     let allOrders = [];
@@ -221,7 +221,7 @@
       let id,exists=true;
       while(exists){
         id=genId();
-        const {data}=await db.from('orders').select('tracking_id').eq('tracking_id',id).maybeSingle();
+        const {data}=await db.from('orders').select('tracking_id').eq('tracking_id',id).single();
         exists=!!data;
       }
       return id;

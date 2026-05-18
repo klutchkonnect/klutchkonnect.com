@@ -6,7 +6,7 @@
   <title>Track Your Order — DropsEx ⚡</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <style>
     :root{--gold:#F5A623;--black:#0A0A0A;--white:#FAFAFA;--mid:#1A1A1A;--border:rgba(245,166,35,0.15);--grey:rgba(255,255,255,0.45);}
     *{margin:0;padding:0;box-sizing:border-box;}
@@ -99,7 +99,7 @@
   <div class="bg-glow"></div>
 
   <nav>
-    <a class="nav-logo" href="index.html"><img src="logo.jpeg" alt="Klutch Konnect" style="height:38px;width:38px;object-fit:contain;border-radius:50%;"><h1>KLUTCH KONNECT</h1></a>
+    <a class="nav-logo" href="index.html"><img src="logo.png" alt="Klutch Konnect" style="height:38px;width:38px;object-fit:contain;border-radius:50%;"><h1>KLUTCH KONNECT</h1></a>
     <div class="nav-links">
       <a href="index.html">Home</a><a href="shop.html">Shop</a>
       <a href="about.html">About</a><a href="contact.html">Contact</a>
@@ -165,7 +165,7 @@
   <script>
     const SUPABASE_URL = 'https://fcageltqgpctregmxunj.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjYWdlbHRxZ3BjdHJlZ214dW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDQ5MDQsImV4cCI6MjA5NDI4MDkwNH0.k37ir7GStGloipMfLeLZIs7vWPxUynUDVHM3EI0TmGA';
-    const {createClient} = supabase;
+    const {createClient} = window.supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const STEPS = [
