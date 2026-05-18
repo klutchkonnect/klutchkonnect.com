@@ -161,98 +161,262 @@
     <p>© 2026 Klutch Konnect Ltd · RC 9207504 · DropsEx Logistics</p>
     <div class="f-links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="contact.html">Contact</a></div>
   </footer>
+  
+<script>
+const SUPABASE_URL = 'https://fcageltqgpctregmxunj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjYWdlbHRxZ3BjdHJlZ214dW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDQ5MDQsImV4cCI6MjA5NDI4MDkwNH0.k37ir7GStGloipMfLeLZIs7vWPxUynUDVHM3EI0TmGA';
 
-  <script>
-    const SUPABASE_URL = 'https://fcageltqgpctregmxunj.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjYWdlbHRxZ3BjdHJlZ214dW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDQ5MDQsImV4cCI6MjA5NDI4MDkwNH0.k37ir7GStGloipMfLeLZIs7vWPxUynUDVHM3EI0TmGA';
-    const {createClient} = window.supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const { createClient } = window.supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const STEPS = [
-      {key:'confirmed',  label:'Order Confirmed',           icon:'fa-check',        desc:'Your order has been received and confirmed by Klutch Konnect.'},
-      {key:'processing', label:'Processed at Klutch Farms', icon:'fa-wheat-awn',    desc:'Your order is being prepared and packaged at Klutch Farms, Isolo Lagos.'},
-      {key:'dispatched', label:'Out for Delivery',          icon:'fa-truck-fast',   desc:'Your order is on its way via DropsEx logistics.'},
-      {key:'delivered',  label:'Delivered ✓',               icon:'fa-circle-check', desc:'Your order has been successfully delivered. Enjoy!'},
-    ];
-    const STATUS_ORDER = ['confirmed','processing','dispatched','delivered'];
-    let currentTrackingId = null;
+const STEPS = [
+  {
+    key:'confirmed',
+    label:'Order Confirmed',
+    icon:'fa-check',
+    desc:'Your order has been received and confirmed by Klutch Konnect.'
+  },
+  {
+    key:'processing',
+    label:'Processed at Klutch Farms',
+    icon:'fa-wheat-awn',
+    desc:'Your order is being prepared and packaged at Klutch Farms.'
+  },
+  {
+    key:'dispatched',
+    label:'Out for Delivery',
+    icon:'fa-truck-fast',
+    desc:'Your order is on its way.'
+  },
+  {
+    key:'delivered',
+    label:'Delivered ✓',
+    icon:'fa-circle-check',
+    desc:'Your order has been delivered.'
+  }
+];
 
-    function formatInput(el){
-      let val = el.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
-      if(val.length>0 && !val.startsWith('KLUTCH-')){
-        val = val.startsWith('KLUTCH') ? 'KLUTCH-'+val.slice(6) : 'KLUTCH-'+val;
-      }
-      el.value = val.slice(0,14);
+const STATUS_ORDER = [
+  'confirmed',
+  'processing',
+  'dispatched',
+  'delivered'
+];
+
+let currentTrackingId = null;
+
+function show(id){
+  document.getElementById(id).style.display = 'block';
+}
+
+function hide(id){
+  document.getElementById(id).style.display = 'none';
+}
+
+async function trackOrder(){
+
+  const input = document
+    .getElementById('tracking-input')
+    .value
+    .trim()
+    .toUpperCase();
+
+  if(!input){
+    alert('Enter tracking ID');
+    return;
+  }
+
+  currentTrackingId = input;
+
+  hide('track-card');
+  hide('error-card');
+  show('loader');
+
+  document.getElementById('track-btn').disabled = true;
+
+  try {
+
+    const { data, error } = await db
+      .from('orders')
+      .select('*')
+      .eq('tracking_id', input)
+      .maybeSingle();
+
+    hide('loader');
+    document.getElementById('track-btn').disabled = false;
+
+    if(error){
+      console.error(error);
+      show('error-card');
+      return;
     }
 
-    function show(id){document.getElementById(id).style.display='block';}
-    function hide(id){document.getElementById(id).style.display='none';}
-
-    async function trackOrder(){
-      const input = document.getElementById('tracking-input').value.trim().toUpperCase();
-      if(!input||input.length<8) return;
-      currentTrackingId = input;
-      hide('track-card'); hide('error-card'); show('loader');
-      document.getElementById('track-btn').disabled = true;
-
-      const {data,error} = await db.from('orders').select('*').eq('tracking_id',input).single();
-
-      hide('loader');
-      document.getElementById('track-btn').disabled = false;
-      if(error||!data){show('error-card');return;}
-      renderResult(data);
+    if(!data){
+      show('error-card');
+      return;
     }
 
-    function renderResult(data){
-      document.getElementById('result-id').textContent       = data.tracking_id;
-      document.getElementById('result-customer').textContent = data.customer_name||'—';
-      document.getElementById('result-product').textContent  = data.product||'—';
-      document.getElementById('result-address').textContent  = data.delivery_address||'—';
-      document.getElementById('result-eta').textContent      = data.eta ? fmtDate(data.eta) : '—';
-      document.getElementById('last-updated').textContent    = 'Last updated '+timeAgo(data.updated_at);
+    renderResult(data);
 
-      const pill = document.getElementById('result-status-pill');
-      pill.textContent = (data.status||'').toUpperCase().replace('_',' ');
-      pill.className   = 'status-pill status-'+data.status;
+  } catch(err){
 
-      const currentIdx = STATUS_ORDER.indexOf(data.status);
-      document.getElementById('timeline-steps').innerHTML = STEPS.map((step,i)=>{
-        const isDone   = i<currentIdx||data.status==='delivered';
-        const isActive = i===currentIdx&&data.status!=='delivered';
-        const state    = isDone?'done':isActive?'active':'pending';
-        const ts       = data[step.key+'_at'];
-        return `<div class="timeline-item">
-          <div class="tl-left">
-            <div class="tl-icon ${state}"><i class="fa-solid ${isDone?'fa-check':isActive?step.icon:'fa-circle'}"></i></div>
-            <div class="tl-line ${isDone?'done':''}"></div>
+    console.error(err);
+
+    hide('loader');
+    document.getElementById('track-btn').disabled = false;
+    show('error-card');
+  }
+}
+
+function renderResult(data){
+
+  document.getElementById('result-id').textContent =
+    data.tracking_id || '—';
+
+  document.getElementById('result-customer').textContent =
+    data.customer_name || '—';
+
+  document.getElementById('result-product').textContent =
+    data.product || '—';
+
+  document.getElementById('result-address').textContent =
+    data.delivery_address || '—';
+
+  document.getElementById('result-eta').textContent =
+    data.eta ? fmtDate(data.eta) : '—';
+
+  document.getElementById('last-updated').textContent =
+    'Last updated ' + timeAgo(data.updated_at);
+
+  const pill =
+    document.getElementById('result-status-pill');
+
+  pill.textContent =
+    (data.status || '')
+    .toUpperCase()
+    .replace('_',' ');
+
+  pill.className =
+    'status-pill status-' + data.status;
+
+  const currentIdx =
+    STATUS_ORDER.indexOf(data.status);
+
+  document.getElementById('timeline-steps').innerHTML =
+    STEPS.map((step,i)=>{
+
+      const isDone =
+        i < currentIdx ||
+        data.status === 'delivered';
+
+      const isActive =
+        i === currentIdx &&
+        data.status !== 'delivered';
+
+      const state =
+        isDone ? 'done'
+        : isActive ? 'active'
+        : 'pending';
+
+      const ts =
+        data[step.key + '_at'];
+
+      return `
+      <div class="timeline-item">
+        <div class="tl-left">
+          <div class="tl-icon ${state}">
+            <i class="fa-solid ${
+              isDone
+                ? 'fa-check'
+                : isActive
+                ? step.icon
+                : 'fa-circle'
+            }"></i>
           </div>
-          <div class="tl-content">
-            <div class="tl-title ${state}">${step.label}</div>
-            <div class="tl-time">${ts?fmtDate(ts):(isActive||isDone)?'In progress':'Pending'}</div>
-            ${(isActive||isDone)?`<div class="tl-desc">${step.desc}</div>`:''}
+
+          <div class="tl-line ${
+            isDone ? 'done' : ''
+          }"></div>
+        </div>
+
+        <div class="tl-content">
+          <div class="tl-title ${state}">
+            ${step.label}
           </div>
-        </div>`;
-      }).join('');
-      show('track-card');
-    }
 
-    async function refreshCurrent(){
-      if(!currentTrackingId) return;
-      const {data} = await db.from('orders').select('*').eq('tracking_id',currentTrackingId).single();
-      if(data) renderResult(data);
-    }
+          <div class="tl-time">
+            ${
+              ts
+              ? fmtDate(ts)
+              : (isActive || isDone)
+              ? 'In progress'
+              : 'Pending'
+            }
+          </div>
 
-    function fmtDate(iso){return new Date(iso).toLocaleString('en-NG',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-    function timeAgo(iso){
-      const d=Math.floor((Date.now()-new Date(iso))/1000);
-      if(d<60) return 'just now';
-      if(d<3600) return Math.floor(d/60)+' min ago';
-      if(d<86400) return Math.floor(d/3600)+' hr ago';
-      return Math.floor(d/86400)+' day(s) ago';
-    }
+          ${
+            (isActive || isDone)
+            ? `<div class="tl-desc">${step.desc}</div>`
+            : ''
+          }
+        </div>
+      </div>
+      `;
+    }).join('');
 
-    const urlId = new URLSearchParams(window.location.search).get('id');
-    if(urlId){document.getElementById('tracking-input').value=urlId.toUpperCase();trackOrder();}
-  </script>
+  show('track-card');
+}
+
+async function refreshCurrent(){
+
+  if(!currentTrackingId) return;
+
+  const { data } = await db
+    .from('orders')
+    .select('*')
+    .eq('tracking_id', currentTrackingId)
+    .maybeSingle();
+
+  if(data){
+    renderResult(data);
+  }
+}
+
+function fmtDate(iso){
+  return new Date(iso)
+    .toLocaleString('en-NG',{
+      day:'numeric',
+      month:'short',
+      year:'numeric',
+      hour:'2-digit',
+      minute:'2-digit'
+    });
+}
+
+function timeAgo(iso){
+
+  const d =
+    Math.floor(
+      (Date.now() - new Date(iso))/1000
+    );
+
+  if(d < 60) return 'just now';
+  if(d < 3600) return Math.floor(d/60)+' min ago';
+  if(d < 86400) return Math.floor(d/3600)+' hr ago';
+
+  return Math.floor(d/86400)+' day(s) ago';
+}
+
+const urlId =
+  new URLSearchParams(window.location.search)
+  .get('id');
+
+if(urlId){
+  document.getElementById('tracking-input')
+    .value = urlId.toUpperCase();
+
+  trackOrder();
+}
+</script>
 </body>
 </html>
