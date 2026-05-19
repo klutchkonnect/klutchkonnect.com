@@ -451,6 +451,23 @@ document
     createOrder
   );
 </script>
+async function login() {
+  // Retrieve the input password
+  const pass = document.getElementById('admin-pass').value.trim();
+
+  // Set your admin password here
+  const ADMIN_PASSWORD = "klutchkonnect93@23"; // Change this to your desired admin password.
+
+  // Check if the password matches
+  if (pass === ADMIN_PASSWORD) {
+    // Hide the login screen and show the admin panel
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+  } else {
+    // Show error message for wrong password
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
   
 </body>
 </html>
