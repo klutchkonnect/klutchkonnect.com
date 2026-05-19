@@ -216,11 +216,40 @@ async function uniqueTrackingId() {
    Create Order
 ------------------------------ */
 async function createOrder() {
+  const customerName = document.getElementById('customer-name')?.value?.trim();
+  const phone = document.getElementById('customer-phone')?.value?.trim();
+  const product = document.getElementById('product')?.value?.trim();
+  const address = document.getElementById('delivery-address')?.value?.trim();
 
-  const customerName =
-    document.getElementById('customer-name')?.value?.trim();
+  if (!customerName || !product || !address) {
+    alert("Please fill in all required fields (Customer name, Product, and Address).");
+    return;
+  }
 
-  const phone =
+  try {
+    const trackingId = await uniqueTrackingId();
+    const { error } = await db.from('orders').insert({
+      tracking_id: trackingId,
+      customer_name: customerName,
+      phone: phone || null,
+      product,
+      delivery_address: address,
+      status: 'confirmed',
+      confirmed_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      console.error("Error adding order:", error);
+      alert("Error adding order! Please try again.");
+    } else {
+      alert(`Order created successfully! Tracking ID: ${trackingId}`);
+      loadOrders(); // Refresh the orders table
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("Something went wrong! Please try again.");
+  }
+}
     document.getElementById('phone')?.value?.trim();
 
   const product =
