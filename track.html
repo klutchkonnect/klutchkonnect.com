@@ -236,27 +236,27 @@ async function trackOrder(){
 
   try {
 
-    const { data, error } = await db
-      .from('orders')
-      .select('*')
-      .eq('tracking_id', input)
-      .maybeSingle();
+const { data, error } = await db
+  .from('orders')
+  .select('*')
+  .eq('tracking_id', input)
+  .maybeSingle();
 
-    hide('loader');
-    document.getElementById('track-btn').disabled = false;
+if (error) {
+  console.error("Database error:", error.message);
+  show('error-card');
+  document.getElementById('error-card-text').textContent = "An error occurred while fetching the order.";
+  return;
+}
 
-    if(error){
-      console.error(error);
-      show('error-card');
-      return;
-    }
+if (!data) {
+  console.warn(`No orders found with tracking ID: ${input}`);
+  show('error-card');
+  document.getElementById('error-card-text').textContent = `No orders found with Tracking ID: ${input}`;
+  return;
+}
 
-    if(!data){
-      show('error-card');
-      return;
-    }
-
-    renderResult(data);
+        renderResult(data);
 
   } catch(err){
 
