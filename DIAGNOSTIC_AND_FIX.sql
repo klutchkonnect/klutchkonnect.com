@@ -87,13 +87,14 @@ END $$;
 GRANT ALL ON public.orders TO anon;
 GRANT ALL ON public.orders TO authenticated;
 GRANT ALL ON public.orders TO postgres;
-GRANT USAGE, SELECT ON SEQUENCE public.orders_id_seq TO anon;
-GRANT USAGE, SELECT ON SEQUENCE public.orders_id_seq TO authenticated;
+-- Grant on ALL sequences in the schema (future-proof and handles auto-naming)
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
 -- Insert test order
 INSERT INTO public.orders (
   tracking_id, customer_name, phone, product,
-  delivery_address, status, confirmed_at, updated_at
+  delivery_address, status, confirmed_at
 ) VALUES (
   'KLUTCH-TEST1',
   'Test Customer',
@@ -101,7 +102,7 @@ INSERT INTO public.orders (
   'Smoky Roasted Catfish (900g)',
   'Opposite 18 Eckankar Drive, Jakande Estate, Isolo Lagos',
   'processing',
-  NOW(), NOW()
+  NOW()
 );
 
 -- VERIFY: This should return 1 row
