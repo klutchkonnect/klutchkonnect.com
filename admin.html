@@ -177,297 +177,190 @@
   <div class="toast" id="toast"></div>
 
   <script>
-const SUPABASE_URL = 'https://fcageltqgpctregmxunj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjYWdlbHRxZ3BjdHJlZ214dW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDQ5MDQsImV4cCI6MjA5NDI4MDkwNH0.k37ir7GStGloipMfLeLZIs7vWPxUynUDVHM3EI0TmGA';
+    const SUPABASE_URL = 'https://nxenzogwsqiihdxkqric.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZW56b2d3c3FpaWhkeGtxcmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzI2NjIsImV4cCI6MjA5NDYwODY2Mn0.c_ZcTTv29ha8Db_wJoEeM9Ekm3Z9nNvaiIang14e6pU';
+    const {createClient} = window.supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const { createClient } = window.supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // ── Change this to something secret! ─────────────────────────────────
+    const ADMIN_PASS = 'klutch2026';
+    const SITE_URL   = 'https://tunjiodus93-ops.github.io/Klutch-Website';
 
-/* -----------------------------
-   Generate Random Tracking ID
------------------------------- */
-async function uniqueTrackingId() {
+    let allOrders = [];
 
-  const chars =
-    'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-  while (true) {
-
-    let random = '';
-
-    for (let i = 0; i < 6; i++) {
-      random +=
-        chars[Math.floor(Math.random() * chars.length)];
+    // ── Auth ──────────────────────────────────────────────────────────────
+    function login(){
+      if(document.getElementById('admin-pass').value === ADMIN_PASS){
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-panel').style.display  = 'block';
+        sessionStorage.setItem('kkadmin','1');
+        init();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+    function logout(){ sessionStorage.removeItem('kkadmin'); location.reload(); }
+    if(sessionStorage.getItem('kkadmin')==='1'){
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('admin-panel').style.display='block';
+      init();
     }
 
-    const id = `KLUTCH-${random}`;
-
-    const { data } = await db
-      .from('orders')
-      .select('tracking_id')
-      .eq('tracking_id', id)
-      .maybeSingle();
-
-    if (!data) return id;
-  }
-}
-
-/* -----------------------------
-   Create Order
------------------------------- */
-async function createOrder() {
-  const customerName = document.getElementById('customer-name')?.value?.trim();
-  const phone = document.getElementById('customer-phone')?.value?.trim();
-  const product = document.getElementById('product')?.value?.trim();
-  const address = document.getElementById('delivery-address')?.value?.trim();
-
-  if (!customerName || !product || !address) {
-    alert("Please fill in all required fields (Customer name, Product, and Address).");
-    return;
-  }
-
-  try {
-    const trackingId = await uniqueTrackingId();
-    const { error } = await db.from('orders').insert({
-      tracking_id: trackingId,
-      customer_name: customerName,
-      phone: phone || null,
-      product,
-      delivery_address: address,
-      status: 'confirmed',
-      confirmed_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      console.error("Error adding order:", error);
-      alert("Error adding order! Please try again.");
-    } else {
-      alert(`Order created successfully! Tracking ID: ${trackingId}`);
-      loadOrders(); // Refresh the orders table
-    }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    alert("Something went wrong! Please try again.");
-  }
-}
-    document.getElementById('phone')?.value?.trim();
-
-  const product =
-    document.getElementById('product')?.value?.trim();
-
-  const address =
-    document.getElementById('delivery-address')?.value?.trim();
-
-  const eta =
-    document.getElementById('eta')?.value;
-
-  const status =
-    document.getElementById('status')?.value ||
-    'confirmed';
-
-  const btn =
-    document.getElementById('submit-btn');
-
-  if (
-    !customerName ||
-    !product ||
-    !address
-  ) {
-    alert(
-      'Customer name, product and address are required.'
-    );
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerText = 'Creating Order...';
-
-  try {
-
-    const trackingId =
-      await uniqueTrackingId();
-
-    const now =
-      new Date().toISOString();
-
-    const payload = {
-      tracking_id: trackingId,
-      customer_name: customerName,
-      phone: phone,
-      product: product,
-      delivery_address: address,
-      eta: eta || null,
-      status: status,
-      confirmed_at:
-        status === 'confirmed' ||
-        status === 'processing' ||
-        status === 'dispatched' ||
-        status === 'delivered'
-          ? now
-          : null,
-
-      processing_at:
-        status === 'processing' ||
-        status === 'dispatched' ||
-        status === 'delivered'
-          ? now
-          : null,
-
-      dispatched_at:
-        status === 'dispatched' ||
-        status === 'delivered'
-          ? now
-          : null,
-
-      delivered_at:
-        status === 'delivered'
-          ? now
-          : null
-    };
-
-    const { data, error } =
-      await db
-        .from('orders')
-        .insert([payload])
-        .select()
-        .single();
-
-    if (error) {
-      console.error(error);
-      alert(
-        'Error creating order: ' +
-        error.message
-      );
-      return;
+    function init(){
+      loadOrders();
+      setInterval(()=>document.getElementById('admin-time').textContent=new Date().toLocaleTimeString('en-NG'),1000);
     }
 
-    const trackingLink =
-      `${window.location.origin}/track.html?id=${trackingId}`;
-
-    const whatsappMessage =
-`Hello ${customerName},
-
-Your order has been created successfully ✅
-
-Tracking ID:
-${trackingId}
-
-Track your order here:
-${trackingLink}
-
-— Klutch Konnect`;
-
-    const whatsappLink =
-      `https://wa.me/${
-        phone.replace(/\D/g,'')
-      }?text=${encodeURIComponent(
-        whatsappMessage
-      )}`;
-
-    alert(
-      `Order Created Successfully!\n\nTracking ID: ${trackingId}`
-    );
-
-    const result =
-      document.getElementById('result');
-
-    if (result) {
-      result.innerHTML = `
-        <div style="
-          background:#111;
-          color:white;
-          padding:20px;
-          border-radius:16px;
-          margin-top:20px;
-        ">
-          <h3>✅ Order Created</h3>
-          <p><strong>Tracking ID:</strong> ${trackingId}</p>
-
-          <a href="${trackingLink}"
-             target="_blank"
-             style="
-               display:inline-block;
-               margin-top:10px;
-               background:#f59e0b;
-               color:black;
-               padding:10px 18px;
-               border-radius:999px;
-               text-decoration:none;
-               font-weight:bold;
-             ">
-             Open Tracking Page
-          </a>
-
-          ${
-            phone
-            ? `
-            <a href="${whatsappLink}"
-               target="_blank"
-               style="
-                 display:inline-block;
-                 margin-top:10px;
-                 margin-left:10px;
-                 background:#25D366;
-                 color:white;
-                 padding:10px 18px;
-                 border-radius:999px;
-                 text-decoration:none;
-                 font-weight:bold;
-               ">
-               Send WhatsApp
-            </a>`
-            : ''
-          }
-        </div>
-      `;
+    // ── Generate unique tracking ID ───────────────────────────────────────
+    function genId(){
+      const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let s=''; for(let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+      return 'KLUTCH-'+s;
+    }
+    async function uniqueId(){
+      let id,exists=true;
+      while(exists){
+        id=genId();
+        const {data}=await db.from('orders').select('tracking_id').eq('tracking_id',id).single();
+        exists=!!data;
+      }
+      return id;
     }
 
-    document
-      .querySelector('form')
-      ?.reset();
+    // ── Create order ──────────────────────────────────────────────────────
+    async function createOrder(){
+      const name    = document.getElementById('f-name').value.trim();
+      const phone   = document.getElementById('f-phone').value.trim();
+      const product = document.getElementById('f-product').value.trim();
+      const address = document.getElementById('f-address').value.trim();
+      const eta     = document.getElementById('f-eta').value;
+      const status  = document.getElementById('f-status').value;
 
-  } catch(err) {
+      if(!name||!phone||!product||!address) return toast('Please fill in all required fields.');
 
-    console.error(err);
+      const btn = document.getElementById('create-btn');
+      btn.disabled=true; btn.textContent='Generating...';
 
-    alert(
-      'Something went wrong creating order.'
-    );
+      const tid = await uniqueId();
+      const now = new Date().toISOString();
 
-  } finally {
+      const row = {
+        tracking_id:      tid,
+        customer_name:    name,
+        phone:            phone,
+        product:          product,
+        delivery_address: address,
+        eta:              eta||null,
+        status:           status,
+        confirmed_at:     status==='confirmed'  ? now : null,
+        processing_at:    status==='processing' ? now : null,
+        dispatched_at:    status==='dispatched' ? now : null,
+        delivered_at:     null,
+        updated_at:       now,
+      };
 
-    btn.disabled = false;
-    btn.innerText = 'Create Order';
-  }
-}
+      const {error} = await db.from('orders').insert([row]);
+      btn.disabled=false; btn.textContent='CREATE ORDER + GENERATE TRACKING ID';
 
-/* -----------------------------
-   Attach Button Event
------------------------------- */
-document
-  .getElementById('submit-btn')
-  ?.addEventListener(
-    'click',
-    createOrder
-  );
-</script>
-async function login() {
-  // Retrieve the input password
-  const pass = document.getElementById('admin-pass').value.trim();
+      if(error){ toast('Error: '+error.message); return; }
 
-  // Set your admin password here
-  const ADMIN_PASSWORD = "klutchkonnect93@23"; // Change this to your desired admin password.
+      // Show result
+      document.getElementById('new-tid').textContent = tid;
+      const trackUrl = `${SITE_URL}/track.html?id=${tid}`;
+      const msg = `Hello ${name}! ⚡%0A%0AYour Klutch Konnect order has been confirmed!%0A%0A🔖 *Tracking ID:* ${tid}%0A📦 *Product:* ${product}%0A📍 *Delivery to:* ${address}%0A%0ATrack your order here:%0A${trackUrl}%0A%0AThank you for choosing Klutch Konnect! Clutch Under Pressure ⚡`;
+      document.getElementById('wa-send-link').href = `https://wa.me/${phone.replace(/\D/g,'')}?text=${msg}`;
+      document.getElementById('new-tracking-result').style.display = 'block';
 
-  // Check if the password matches
-  if (pass === ADMIN_PASSWORD) {
-    // Hide the login screen and show the admin panel
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
-  } else {
-    // Show error message for wrong password
-    document.getElementById('login-error').style.display = 'block';
-  }
-}
-  
+      toast(`✓ Order ${tid} created!`);
+      clearForm();
+      loadOrders();
+    }
+
+    function clearForm(){
+      ['f-name','f-phone','f-product','f-address','f-eta'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('f-status').value='confirmed';
+      document.getElementById('new-tracking-result').style.display='none';
+    }
+
+    function copyTid(){
+      navigator.clipboard.writeText(document.getElementById('new-tid').textContent);
+      toast('Tracking ID copied!');
+    }
+
+    // ── Load & render orders ──────────────────────────────────────────────
+    async function loadOrders(){
+      const {data,error} = await db.from('orders').select('*').order('created_at',{ascending:false});
+      if(error){ toast('Load error: '+error.message); return; }
+      allOrders = data||[];
+      updateStats();
+      renderOrders(allOrders);
+    }
+
+    function updateStats(){
+      document.getElementById('stat-total').textContent      = allOrders.length;
+      document.getElementById('stat-confirmed').textContent  = allOrders.filter(o=>o.status==='confirmed').length;
+      document.getElementById('stat-processing').textContent = allOrders.filter(o=>o.status==='processing').length;
+      document.getElementById('stat-dispatched').textContent = allOrders.filter(o=>o.status==='dispatched').length;
+      document.getElementById('stat-delivered').textContent  = allOrders.filter(o=>o.status==='delivered').length;
+    }
+
+    function renderOrders(orders){
+      const tbody = document.getElementById('orders-tbody');
+      if(!orders.length){
+        tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="big">📦</div><p>No orders yet. Create one above!</p></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = orders.map(o=>`
+        <tr>
+          <td class="tracking-cell">${o.tracking_id}</td>
+          <td>${o.customer_name||'—'}<br><small style="color:var(--grey);font-size:0.75rem;">${o.phone||''}</small></td>
+          <td>${o.product||'—'}</td>
+          <td style="max-width:160px;font-size:0.8rem;color:var(--grey)">${o.delivery_address||'—'}</td>
+          <td style="font-size:0.8rem">${o.eta?fmtDate(o.eta):'—'}</td>
+          <td>
+            <select class="status-select" id="sel-${o.tracking_id}">
+              <option value="confirmed"  ${o.status==='confirmed'  ?'selected':''}>✓ Confirmed</option>
+              <option value="processing" ${o.status==='processing' ?'selected':''}>⚙ Processing</option>
+              <option value="dispatched" ${o.status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
+              <option value="delivered"  ${o.status==='delivered'  ?'selected':''}>✅ Delivered</option>
+              <option value="cancelled"  ${o.status==='cancelled'  ?'selected':''}>✗ Cancelled</option>
+            </select>
+          </td>
+          <td><button class="update-btn" onclick="updateStatus('${o.tracking_id}')">Update</button></td>
+          <td><a class="track-link" href="track.html?id=${o.tracking_id}" target="_blank">🔗 Track</a></td>
+        </tr>`).join('');
+    }
+
+    async function updateStatus(tid){
+      const newStatus = document.getElementById('sel-'+tid).value;
+      const now = new Date().toISOString();
+      const update = {status:newStatus, updated_at:now};
+      update[newStatus+'_at'] = now;
+      const {error} = await db.from('orders').update(update).eq('tracking_id',tid);
+      if(error){ toast('Error: '+error.message); return; }
+      toast(`✓ ${tid} → ${newStatus.toUpperCase()}`);
+      loadOrders();
+    }
+
+    function filterOrders(q){
+      q=q.toLowerCase();
+      renderOrders(allOrders.filter(o=>
+        (o.tracking_id||'').toLowerCase().includes(q)||
+        (o.customer_name||'').toLowerCase().includes(q)||
+        (o.product||'').toLowerCase().includes(q)
+      ));
+    }
+    function filterByStatus(s){
+      renderOrders(s==='all'?allOrders:allOrders.filter(o=>o.status===s));
+    }
+
+    function fmtDate(iso){return new Date(iso).toLocaleString('en-NG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+
+    function toast(msg){
+      const t=document.getElementById('toast');
+      t.textContent=msg; t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),2500);
+    }
+  </script>
 </body>
 </html>
