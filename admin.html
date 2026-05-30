@@ -19,7 +19,7 @@
     .login-box input{width:100%;background:#111;border:1px solid rgba(255,255,255,0.1);color:var(--white);padding:14px 16px;font-family:'DM Mono',monospace;font-size:1rem;outline:none;margin-bottom:16px;}
     .login-box input:focus{border-color:var(--gold);}
     .login-btn{width:100%;background:var(--gold);color:var(--black);border:none;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;cursor:pointer;transition:opacity 0.2s;}
-    .login-btn:hover{opacity:0.9;}
+    .login-btn:hover{opacity:0.9;} .login-btn:disabled{opacity:0.5;cursor:not-allowed;}
     .login-error{color:#ff6464;font-size:0.8rem;margin-top:8px;display:none;}
     /* HEADER */
     header{background:rgba(10,10,10,0.95);border-bottom:1px solid var(--border);padding:18px 40px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;}
@@ -88,7 +88,7 @@
       <p>Order Management System · DropsEx</p>
       <input type="password" id="admin-pass" placeholder="Enter admin password"
              onkeydown="if(event.key==='Enter')login()">
-      <button class="login-btn" onclick="login()">ACCESS DASHBOARD</button>
+      <button class="login-btn" id="login-btn" onclick="login()">ACCESS DASHBOARD</button>
       <p class="login-error" id="login-error">Incorrect password. Try again.</p>
     </div>
   </div>
@@ -97,7 +97,8 @@
   <div id="admin-panel" style="display:none;">
     <header>
       <div class="header-logo">
-        <img src="logo.png" alt="Klutch" style="height:34px;width:34px;object-fit:contain;border-radius:50%;"><h1>KLUTCH ADMIN</h1>
+        <img src="logo.png" alt="Klutch" style="height:34px;width:34px;object-fit:contain;border-radius:50%;">
+        <h1>KLUTCH ADMIN</h1>
         <small>DropsEx Control</small>
       </div>
       <div class="header-right">
@@ -177,58 +178,99 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // ── Supabase client ────────────────────────────────────────────────────
     const SUPABASE_URL = 'https://nxenzogwsqiihdxkqric.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54ZW56b2d3c3FpaWhkeGtxcmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzI2NjIsImV4cCI6MjA5NDYwODY2Mn0.c_ZcTTv29ha8Db_wJoEeM9Ekm3Z9nNvaiIang14e6pU';
-    const {createClient} = window.supabase;
+    const { createClient } = window.supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ── Change this to something secret! ─────────────────────────────────
-    const ADMIN_PASS = 'klutch2026';
-    const SITE_URL   = 'https://tunjiodus93-ops.github.io/Klutch-Website';
+    const SITE_URL = 'https://tunjiodus93-ops.github.io/Klutch-Website';
+    const ADMIN_EMAIL = 'klutchkonnect@outlook.com';
 
     let allOrders = [];
 
-    // ── Auth ──────────────────────────────────────────────────────────────
-    function login(){
-      if(document.getElementById('admin-pass').value === ADMIN_PASS){
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-panel').style.display  = 'block';
-        sessionStorage.setItem('kkadmin','1');
+    // ── AUTH: Check session on page load ──────────────────────────────────
+    // Replaces the old sessionStorage check. Now uses real Supabase Auth.
+    (async () => {
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        showPanel();
         init();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
       }
-    }
-    function logout(){ sessionStorage.removeItem('kkadmin'); location.reload(); }
-    if(sessionStorage.getItem('kkadmin')==='1'){
-      document.getElementById('login-screen').style.display='none';
-      document.getElementById('admin-panel').style.display='block';
+    })();
+
+    // ── AUTH: Login ───────────────────────────────────────────────────────
+    // Was: plain password string comparison → no Supabase session → RLS blocked SELECT
+    // Now: supabase.auth.signInWithPassword() → real session → RLS allows SELECT ✅
+    async function login() {
+      const password = document.getElementById('admin-pass').value.trim();
+      const errorEl  = document.getElementById('login-error');
+      const loginBtn = document.getElementById('login-btn');
+
+      if (!password) return;
+
+      errorEl.style.display = 'none';
+      loginBtn.disabled     = true;
+      loginBtn.textContent  = 'Signing in...';
+
+      const { data, error } = await db.auth.signInWithPassword({
+        email:    ADMIN_EMAIL,
+        password: password
+      });
+
+      if (error || !data.session) {
+        errorEl.style.display = 'block';
+        loginBtn.disabled     = false;
+        loginBtn.textContent  = 'ACCESS DASHBOARD';
+        return;
+      }
+
+      // ✅ Authenticated — Supabase session live, RLS will now allow all queries
+      showPanel();
       init();
     }
 
-    function init(){
+    // ── AUTH: Logout ──────────────────────────────────────────────────────
+    async function logout() {
+      await db.auth.signOut();
+      location.reload();
+    }
+
+    // ── Show/hide panels ──────────────────────────────────────────────────
+    function showPanel() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display  = 'block';
+    }
+
+    // ── Init dashboard ────────────────────────────────────────────────────
+    function init() {
       loadOrders();
-      setInterval(()=>document.getElementById('admin-time').textContent=new Date().toLocaleTimeString('en-NG'),1000);
+      setInterval(() => {
+        document.getElementById('admin-time').textContent =
+          new Date().toLocaleTimeString('en-NG');
+      }, 1000);
     }
 
     // ── Generate unique tracking ID ───────────────────────────────────────
-    function genId(){
-      const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let s=''; for(let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)];
-      return 'KLUTCH-'+s;
+    function genId() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let s = '';
+      for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+      return 'KLUTCH-' + s;
     }
-    async function uniqueId(){
-      let id,exists=true;
-      while(exists){
-        id=genId();
-        const {data}=await db.from('orders').select('tracking_id').eq('tracking_id',id).single();
-        exists=!!data;
+
+    async function uniqueId() {
+      let id, exists = true;
+      while (exists) {
+        id = genId();
+        const { data } = await db.from('orders').select('tracking_id').eq('tracking_id', id).single();
+        exists = !!data;
       }
       return id;
     }
 
     // ── Create order ──────────────────────────────────────────────────────
-    async function createOrder(){
+    async function createOrder() {
       const name    = document.getElementById('f-name').value.trim();
       const phone   = document.getElementById('f-phone').value.trim();
       const product = document.getElementById('f-product').value.trim();
@@ -236,10 +278,10 @@
       const eta     = document.getElementById('f-eta').value;
       const status  = document.getElementById('f-status').value;
 
-      if(!name||!phone||!product||!address) return toast('Please fill in all required fields.');
+      if (!name || !phone || !product || !address) return toast('Please fill in all required fields.');
 
       const btn = document.getElementById('create-btn');
-      btn.disabled=true; btn.textContent='Generating...';
+      btn.disabled = true; btn.textContent = 'Generating...';
 
       const tid = await uniqueId();
       const now = new Date().toISOString();
@@ -250,25 +292,24 @@
         phone:            phone,
         product:          product,
         delivery_address: address,
-        eta:              eta||null,
+        eta:              eta || null,
         status:           status,
-        confirmed_at:     status==='confirmed'  ? now : null,
-        processing_at:    status==='processing' ? now : null,
-        dispatched_at:    status==='dispatched' ? now : null,
+        confirmed_at:     status === 'confirmed'  ? now : null,
+        processing_at:    status === 'processing' ? now : null,
+        dispatched_at:    status === 'dispatched' ? now : null,
         delivered_at:     null,
         updated_at:       now,
       };
 
-      const {error} = await db.from('orders').insert([row]);
-      btn.disabled=false; btn.textContent='CREATE ORDER + GENERATE TRACKING ID';
+      const { error } = await db.from('orders').insert([row]);
+      btn.disabled = false; btn.textContent = 'CREATE ORDER + GENERATE TRACKING ID';
 
-      if(error){ toast('Error: '+error.message); return; }
+      if (error) { toast('Error: ' + error.message); return; }
 
-      // Show result
       document.getElementById('new-tid').textContent = tid;
       const trackUrl = `${SITE_URL}/track.html?id=${tid}`;
       const msg = `Hello ${name}! ⚡%0A%0AYour Klutch Konnect order has been confirmed!%0A%0A🔖 *Tracking ID:* ${tid}%0A📦 *Product:* ${product}%0A📍 *Delivery to:* ${address}%0A%0ATrack your order here: ${trackUrl}%0A%0A#DropsEx #KlutchKonnect`;
-      document.getElementById('wa-send-link').href = `https://wa.me/${phone.replace(/\D/g,'')}?text=${msg}`;
+      document.getElementById('wa-send-link').href = `https://wa.me/${phone.replace(/\D/g, '')}?text=${msg}`;
       document.getElementById('new-tracking-result').style.display = 'block';
 
       toast(`✓ Order ${tid} created!`);
@@ -276,54 +317,54 @@
       loadOrders();
     }
 
-    function clearForm(){
-      ['f-name','f-phone','f-product','f-address','f-eta'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('f-status').value='confirmed';
-      document.getElementById('new-tracking-result').style.display='none';
+    function clearForm() {
+      ['f-name', 'f-phone', 'f-product', 'f-address', 'f-eta'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('f-status').value = 'confirmed';
+      document.getElementById('new-tracking-result').style.display = 'none';
     }
 
-    function copyTid(){
+    function copyTid() {
       navigator.clipboard.writeText(document.getElementById('new-tid').textContent);
       toast('Tracking ID copied!');
     }
 
     // ── Load & render orders ──────────────────────────────────────────────
-    async function loadOrders(){
-      const {data,error} = await db.from('orders').select('*').order('created_at',{ascending:false});
-      if(error){ toast('Load error: '+error.message); return; }
-      allOrders = data||[];
+    async function loadOrders() {
+      const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
+      if (error) { toast('Load error: ' + error.message); return; }
+      allOrders = data || [];
       updateStats();
       renderOrders(allOrders);
     }
 
-    function updateStats(){
+    function updateStats() {
       document.getElementById('stat-total').textContent      = allOrders.length;
-      document.getElementById('stat-confirmed').textContent  = allOrders.filter(o=>o.status==='confirmed').length;
-      document.getElementById('stat-processing').textContent = allOrders.filter(o=>o.status==='processing').length;
-      document.getElementById('stat-dispatched').textContent = allOrders.filter(o=>o.status==='dispatched').length;
-      document.getElementById('stat-delivered').textContent  = allOrders.filter(o=>o.status==='delivered').length;
+      document.getElementById('stat-confirmed').textContent  = allOrders.filter(o => o.status === 'confirmed').length;
+      document.getElementById('stat-processing').textContent = allOrders.filter(o => o.status === 'processing').length;
+      document.getElementById('stat-dispatched').textContent = allOrders.filter(o => o.status === 'dispatched').length;
+      document.getElementById('stat-delivered').textContent  = allOrders.filter(o => o.status === 'delivered').length;
     }
 
-    function renderOrders(orders){
+    function renderOrders(orders) {
       const tbody = document.getElementById('orders-tbody');
-      if(!orders.length){
-        tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="big">📦</div><p>No orders yet. Create one above!</p></div></td></tr>`;
+      if (!orders.length) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="big">📦</div><p>No orders yet. Create one above!</p></div></td></tr>`;
         return;
       }
-      tbody.innerHTML = orders.map(o=>`
+      tbody.innerHTML = orders.map(o => `
         <tr>
           <td class="tracking-cell">${o.tracking_id}</td>
-          <td>${o.customer_name||'—'}<br><small style="color:var(--grey);font-size:0.75rem;">${o.phone||''}</small></td>
-          <td>${o.product||'—'}</td>
-          <td style="max-width:160px;font-size:0.8rem;color:var(--grey)">${o.delivery_address||'—'}</td>
-          <td style="font-size:0.8rem">${o.eta?fmtDate(o.eta):'—'}</td>
+          <td>${o.customer_name || '—'}<br><small style="color:var(--grey);font-size:0.75rem;">${o.phone || ''}</small></td>
+          <td>${o.product || '—'}</td>
+          <td style="max-width:160px;font-size:0.8rem;color:var(--grey)">${o.delivery_address || '—'}</td>
+          <td style="font-size:0.8rem">${o.eta ? fmtDate(o.eta) : '—'}</td>
           <td>
             <select class="status-select" id="sel-${o.tracking_id}">
-              <option value="confirmed"  ${o.status==='confirmed'  ?'selected':''}>✓ Confirmed</option>
-              <option value="processing" ${o.status==='processing' ?'selected':''}>⚙ Processing</option>
-              <option value="dispatched" ${o.status==='dispatched' ?'selected':''}>🚚 Dispatched</option>
-              <option value="delivered"  ${o.status==='delivered'  ?'selected':''}>✅ Delivered</option>
-              <option value="cancelled"  ${o.status==='cancelled'  ?'selected':''}>✗ Cancelled</option>
+              <option value="confirmed"  ${o.status === 'confirmed'  ? 'selected' : ''}>✓ Confirmed</option>
+              <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>⚙ Processing</option>
+              <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>🚚 Dispatched</option>
+              <option value="delivered"  ${o.status === 'delivered'  ? 'selected' : ''}>✅ Delivered</option>
+              <option value="cancelled"  ${o.status === 'cancelled'  ? 'selected' : ''}>✗ Cancelled</option>
             </select>
           </td>
           <td><button class="update-btn" onclick="updateStatus('${o.tracking_id}')">Update</button></td>
@@ -331,35 +372,38 @@
         </tr>`).join('');
     }
 
-    async function updateStatus(tid){
-      const newStatus = document.getElementById('sel-'+tid).value;
+    async function updateStatus(tid) {
+      const newStatus = document.getElementById('sel-' + tid).value;
       const now = new Date().toISOString();
-      const update = {status:newStatus, updated_at:now};
-      update[newStatus+'_at'] = now;
-      const {error} = await db.from('orders').update(update).eq('tracking_id',tid);
-      if(error){ toast('Error: '+error.message); return; }
+      const update = { status: newStatus, updated_at: now };
+      update[newStatus + '_at'] = now;
+      const { error } = await db.from('orders').update(update).eq('tracking_id', tid);
+      if (error) { toast('Error: ' + error.message); return; }
       toast(`✓ ${tid} → ${newStatus.toUpperCase()}`);
       loadOrders();
     }
 
-    function filterOrders(q){
-      q=q.toLowerCase();
-      renderOrders(allOrders.filter(o=>
-        (o.tracking_id||'').toLowerCase().includes(q)||
-        (o.customer_name||'').toLowerCase().includes(q)||
-        (o.product||'').toLowerCase().includes(q)
+    function filterOrders(q) {
+      q = q.toLowerCase();
+      renderOrders(allOrders.filter(o =>
+        (o.tracking_id || '').toLowerCase().includes(q) ||
+        (o.customer_name || '').toLowerCase().includes(q) ||
+        (o.product || '').toLowerCase().includes(q)
       ));
     }
-    function filterByStatus(s){
-      renderOrders(s==='all'?allOrders:allOrders.filter(o=>o.status===s));
+
+    function filterByStatus(s) {
+      renderOrders(s === 'all' ? allOrders : allOrders.filter(o => o.status === s));
     }
 
-    function fmtDate(iso){return new Date(iso).toLocaleString('en-NG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+    function fmtDate(iso) {
+      return new Date(iso).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
 
-    function toast(msg){
-      const t=document.getElementById('toast');
-      t.textContent=msg; t.classList.add('show');
-      setTimeout(()=>t.classList.remove('show'),2500);
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
     }
   </script>
 </body>
